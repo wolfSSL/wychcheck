@@ -67,7 +67,9 @@ test_result_t run_ecdsa_p1363(cJSON *root, const char *fname)
                           msg_bytes, (word32)msg_len,
                           hash, (word32)hash_len);
 
-            if (ret != 0 || sig_len == 0 || sig_len % 2 != 0) {
+            /* P1363: sig = r || s, each half is exactly curve order size */
+            half = (size_t)wc_ecc_size(&key);
+            if (ret != 0 || sig_len != 2 * half) {
                 if (is_valid(tc)) {
                     res.failed++;
                     FAIL_TC(fname, tc, "ECDSA P1363 hash/sig len error");
@@ -77,9 +79,6 @@ test_result_t run_ecdsa_p1363(cJSON *root, const char *fname)
                 free(msg_bytes); free(sig_bytes);
                 continue;
             }
-
-            /* P1363: sig = r || s, each half is curve order size */
-            half = sig_len / 2;
             mp_init(&r_mp);
             mp_init(&s_mp);
             mp_read_unsigned_bin(&r_mp, sig_bytes, (word32)half);
