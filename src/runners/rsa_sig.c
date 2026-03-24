@@ -3,6 +3,7 @@
 #ifndef NO_RSA
 #include <wolfssl/wolfcrypt/rsa.h>
 #include <wolfssl/wolfcrypt/asn_public.h>
+#include <wolfssl/wolfcrypt/signature.h>
 #endif
 
 test_result_t run_rsa_sig(cJSON *root, const char *fname)
@@ -58,29 +59,17 @@ test_result_t run_rsa_sig(cJSON *root, const char *fname)
         cJSON_ArrayForEach(tc, tests) {
             uint8_t *msg_bytes, *sig_bytes;
             size_t msg_len, sig_len;
-            uint8_t hash[WC_MAX_DIGEST_SIZE];
-            uint8_t *dec_buf;
-            int ret, dec_len, key_size;
+            int ret;
 
             msg_bytes = get_hex(tc, "msg", &msg_len);
             sig_bytes = get_hex(tc, "sig", &sig_len);
 
-            key_size = wc_RsaEncryptSize(key);
-            dec_buf = (uint8_t *)malloc(key_size > 0 ? key_size : 1024);
-
-            ret = wc_Hash((enum wc_HashType)hash_type,
-                          msg_bytes, (word32)msg_len,
-                          hash, (word32)hash_len);
-
-            if (ret == 0 && dec_buf) {
-                dec_len = wc_RsaSSL_Verify(sig_bytes, (word32)sig_len,
-                                           dec_buf, key_size, key);
-                if (dec_len < 0)
-                    ret = dec_len;
-                else if (dec_len != hash_len ||
-                         memcmp(dec_buf, hash, hash_len) != 0)
-                    ret = -1;
-            }
+            ret = wc_SignatureVerify(
+                      (enum wc_HashType)hash_type,
+                      WC_SIGNATURE_TYPE_RSA_W_ENC,
+                      msg_bytes, (word32)msg_len,
+                      sig_bytes, (word32)sig_len,
+                      key, sizeof(*key));
 
             if (is_acceptable(tc)) {
                 res.passed++;
@@ -91,7 +80,7 @@ test_result_t run_rsa_sig(cJSON *root, const char *fname)
                 if (ret != 0) res.passed++;
                 else { res.failed++; FAIL_TC(fname, tc, "RSA PKCS1 accepted invalid"); }
             }
-            free(msg_bytes); free(sig_bytes); free(dec_buf);
+            free(msg_bytes); free(sig_bytes);
         }
         wc_FreeRsaKey(key);
         free(key);

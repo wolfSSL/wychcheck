@@ -67,10 +67,13 @@ static int test_aes_xts(const uint8_t *key, size_t key_len,
     if (iv_len > sizeof(tweak)) iv_len = sizeof(tweak);
     memcpy(tweak, iv, iv_len);
 
-    ret = wc_AesXtsSetKeyNoInit(&xts, key, (word32)key_len, AES_DECRYPTION);
+    ret = wc_AesXtsInit(&xts, NULL, INVALID_DEVID);
     if (ret != 0) { free(out); return ret; }
 
-    ret = wc_AesXtsDecrypt(&xts, out, ct, (word32)ct_len, tweak, (word32)iv_len);
+    ret = wc_AesXtsSetKeyNoInit(&xts, key, (word32)key_len, AES_DECRYPTION);
+    if (ret != 0) { wc_AesXtsFree(&xts); free(out); return ret; }
+
+    ret = wc_AesXtsDecrypt(&xts, out, ct, (word32)ct_len, tweak, AES_BLOCK_SIZE);
     wc_AesXtsFree(&xts);
     if (ret != 0) { free(out); return ret; }
 
