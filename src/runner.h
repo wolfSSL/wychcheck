@@ -20,41 +20,12 @@ typedef struct {
     int skipped;
 } test_result_t;
 
-typedef test_result_t (*runner_fn)(const char *json_path);
+typedef test_result_t (*runner_fn)(cJSON *root, const char *fname);
 
 typedef struct {
     const char *schema;
     runner_fn   run;
 } runner_def_t;
-
-/* Helper: load entire file into malloc'd string */
-static inline char *load_file(const char *path)
-{
-    FILE *f = fopen(path, "rb");
-    long len;
-    char *buf;
-    if (!f) return NULL;
-    fseek(f, 0, SEEK_END);
-    len = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    buf = (char *)malloc(len + 1);
-    if (!buf) { fclose(f); return NULL; }
-    if ((long)fread(buf, 1, len, f) != len) { free(buf); fclose(f); return NULL; }
-    buf[len] = '\0';
-    fclose(f);
-    return buf;
-}
-
-/* Helper: load and parse JSON file */
-static inline cJSON *load_json(const char *path)
-{
-    char *text = load_file(path);
-    cJSON *root;
-    if (!text) return NULL;
-    root = cJSON_Parse(text);
-    free(text);
-    return root;
-}
 
 /* Helper: get hex-decoded field from cJSON object.
  * Returns malloc'd buffer, sets *len. Returns NULL if field missing/empty. */
@@ -101,17 +72,13 @@ static inline int wc_mgf_type(const char *mgfSha)
     return WC_MGF1NONE;
 }
 
-/* Helper: check result field */
+/* Helper: check Wycheproof result field.
+ * "valid" = must succeed, "invalid" = must fail,
+ * "acceptable" = implementation-defined, counted as pass either way. */
 static inline int is_valid(cJSON *tc)
 {
     cJSON *r = cJSON_GetObjectItem(tc, "result");
     return r && cJSON_IsString(r) && strcmp(r->valuestring, "valid") == 0;
-}
-
-static inline int is_invalid(cJSON *tc)
-{
-    cJSON *r = cJSON_GetObjectItem(tc, "result");
-    return r && cJSON_IsString(r) && strcmp(r->valuestring, "invalid") == 0;
 }
 
 static inline int is_acceptable(cJSON *tc)
@@ -130,18 +97,18 @@ static inline int get_tcid(cJSON *tc)
     fprintf(stderr, "  FAIL %s tcId=%d: " fmt "\n", file, get_tcid(tc), ##__VA_ARGS__)
 
 /* Runner declarations */
-test_result_t run_aead(const char *path);
-test_result_t run_mac(const char *path);
-test_result_t run_hkdf(const char *path);
-test_result_t run_ind_cpa(const char *path);
-test_result_t run_keywrap(const char *path);
-test_result_t run_ecdh(const char *path);
-test_result_t run_ecdsa(const char *path);
-test_result_t run_ecdsa_p1363(const char *path);
-test_result_t run_eddsa(const char *path);
-test_result_t run_xdh(const char *path);
-test_result_t run_rsa_sig(const char *path);
-test_result_t run_rsa_oaep(const char *path);
-test_result_t run_rsa_pss(const char *path);
+test_result_t run_aead(cJSON *root, const char *fname);
+test_result_t run_mac(cJSON *root, const char *fname);
+test_result_t run_hkdf(cJSON *root, const char *fname);
+test_result_t run_ind_cpa(cJSON *root, const char *fname);
+test_result_t run_keywrap(cJSON *root, const char *fname);
+test_result_t run_ecdh(cJSON *root, const char *fname);
+test_result_t run_ecdsa(cJSON *root, const char *fname);
+test_result_t run_ecdsa_p1363(cJSON *root, const char *fname);
+test_result_t run_eddsa(cJSON *root, const char *fname);
+test_result_t run_xdh(cJSON *root, const char *fname);
+test_result_t run_rsa_sig(cJSON *root, const char *fname);
+test_result_t run_rsa_oaep(cJSON *root, const char *fname);
+test_result_t run_rsa_pss(cJSON *root, const char *fname);
 
 #endif

@@ -5,18 +5,11 @@
 #include <wolfssl/wolfcrypt/asn_public.h>
 #endif
 
-test_result_t run_ecdsa(const char *path)
+test_result_t run_ecdsa(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #if defined(HAVE_ECC) && defined(HAVE_ECC_VERIFY)
-    cJSON *root, *groups, *group, *tests, *tc;
-    const char *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *groups, *group, *tests, *tc;
 
     groups = cJSON_GetObjectItem(root, "testGroups");
     cJSON_ArrayForEach(group, groups) {
@@ -91,9 +84,9 @@ test_result_t run_ecdsa(const char *path)
         }
         wc_ecc_free(&key);
     }
-    cJSON_Delete(root);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

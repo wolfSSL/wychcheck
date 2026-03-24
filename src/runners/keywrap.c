@@ -1,24 +1,16 @@
 #include "runner.h"
 #include <wolfssl/wolfcrypt/aes.h>
 
-test_result_t run_keywrap(const char *path)
+test_result_t run_keywrap(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #ifdef HAVE_AES_KEYWRAP
-    cJSON *root, *groups, *group, *tests, *tc;
-    const char *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *groups, *group, *tests, *tc;
 
     /* Only AES-WRAP is supported, not AES-KWP */
     {
         cJSON *algo = cJSON_GetObjectItem(root, "algorithm");
         if (!algo || strcmp(algo->valuestring, "AES-WRAP") != 0) {
-            cJSON_Delete(root);
             return res;
         }
     }
@@ -55,9 +47,9 @@ test_result_t run_keywrap(const char *path)
             free(key); free(msg); free(ct);
         }
     }
-    cJSON_Delete(root);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

@@ -1,0 +1,36 @@
+{
+  "algorithm": "AES-GCM",
+  "schema": "aead_test_schema_v1.json",
+  "testGroups": [
+    {
+      "ivSize": 96,
+      "keySize": 128,
+      "tagSize": 128,
+      "type": "AeadTest",
+      "tests": [
+        {
+          "tcId": 1,
+          "comment": "valid vector with WRONG expected ct - harness should report FAIL",
+          "key": "000102030405060708090a0b0c0d0e0f",
+          "iv": "505152535455565758595a5b",
+          "aad": "",
+          "msg": "0000000000",
+          "ct": "8351234755",
+          "tag": "750eb2d26099a404e709e5e2a7036f78",
+          "result": "valid"
+        },
+        {
+          "tcId": 2,
+          "comment": "invalid but actually valid data - harness should report FAIL",
+          "key": "000102030405060708090a0b0c0d0e0f",
+          "iv": "505152535455565758595a5b",
+          "aad": "",
+          "msg": "48656c6c6f",
+          "ct": "8351234755",
+          "tag": "750eb2d26099a404e709e5e2a7036f78",
+          "result": "invalid"
+        }
+      ]
+    }
+  ]
+}

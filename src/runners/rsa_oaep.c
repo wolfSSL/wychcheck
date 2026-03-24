@@ -6,21 +6,14 @@
 #include <wolfssl/wolfcrypt/random.h>
 #endif
 
-test_result_t run_rsa_oaep(const char *path)
+test_result_t run_rsa_oaep(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #if !defined(NO_RSA) && defined(WC_RSA_OAEP)
-    cJSON *root, *groups, *group, *tests, *tc;
-    const char *fname;
+    cJSON *groups, *group, *tests, *tc;
     WC_RNG rng;
 
     if (wc_InitRng(&rng) != 0) return res;
-
-    root = load_json(path);
-    if (!root) { wc_FreeRng(&rng); return res; }
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
 
     groups = cJSON_GetObjectItem(root, "testGroups");
     cJSON_ArrayForEach(group, groups) {
@@ -117,10 +110,10 @@ test_result_t run_rsa_oaep(const char *path)
         free(key);
     }
 
-    cJSON_Delete(root);
     wc_FreeRng(&rng);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

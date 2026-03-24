@@ -29,20 +29,14 @@ static int hmac_type_from_algo(const char *algo)
     return -1;
 }
 
-test_result_t run_mac(const char *path)
+test_result_t run_mac(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
-    cJSON *root, *algo_item, *groups, *group, *tests, *tc;
-    const char *algo, *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *algo_item, *groups, *group, *tests, *tc;
+    const char *algo;
 
     algo_item = cJSON_GetObjectItem(root, "algorithm");
-    if (!algo_item || !cJSON_IsString(algo_item)) { cJSON_Delete(root); return res; }
+    if (!algo_item || !cJSON_IsString(algo_item)) { return res; }
     algo = algo_item->valuestring;
 
     groups = cJSON_GetObjectItem(root, "testGroups");
@@ -134,6 +128,5 @@ test_result_t run_mac(const char *path)
         }
     }
 
-    cJSON_Delete(root);
     return res;
 }

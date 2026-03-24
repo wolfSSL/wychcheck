@@ -82,32 +82,26 @@ static int test_aes_xts(const uint8_t *key, size_t key_len,
 }
 #endif
 
-test_result_t run_ind_cpa(const char *path)
+test_result_t run_ind_cpa(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
-    cJSON *root, *algo_item, *groups, *group, *tests, *tc;
-    const char *algo, *fname;
+    cJSON *algo_item, *groups, *group, *tests, *tc;
+    const char *algo;
     int is_cbc = 0, is_xts = 0;
 
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
-
     algo_item = cJSON_GetObjectItem(root, "algorithm");
-    if (!algo_item) { cJSON_Delete(root); return res; }
+    if (!algo_item) { return res; }
     algo = algo_item->valuestring;
 
     if (strcmp(algo, "AES-CBC-PKCS5") == 0) is_cbc = 1;
     else if (strcmp(algo, "AES-XTS") == 0) is_xts = 1;
-    else { cJSON_Delete(root); return res; }
+    else { return res; }
 
 #ifndef HAVE_AES_CBC
-    if (is_cbc) { cJSON_Delete(root); return res; }
+    if (is_cbc) { return res; }
 #endif
 #ifndef WOLFSSL_AES_XTS
-    if (is_xts) { cJSON_Delete(root); return res; }
+    if (is_xts) { return res; }
 #endif
 
     groups = cJSON_GetObjectItem(root, "testGroups");
@@ -148,6 +142,5 @@ test_result_t run_ind_cpa(const char *path)
         }
     }
 
-    cJSON_Delete(root);
     return res;
 }

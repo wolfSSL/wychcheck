@@ -2,13 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 project(wychcheck C)
 
 set(WOLFSSL_DIR "$ENV{WOLFSSL_DIR}")
-set(WYCHEPROOF_DIR "$ENV{WYCHEPROOF_DIR}")
 
 if(NOT WOLFSSL_DIR)
     message(FATAL_ERROR "Set WOLFSSL_DIR to a built wolfssl source tree")
-endif()
-if(NOT WYCHEPROOF_DIR)
-    message(FATAL_ERROR "Set WYCHEPROOF_DIR to a wycheproof repo checkout")
 endif()
 
 # wolfssl headers live at WOLFSSL_DIR root (for #include <wolfssl/options.h>)
@@ -28,16 +24,29 @@ if(NOT WOLFSSL_LIB)
 endif()
 message(STATUS "Using wolfssl: ${WOLFSSL_LIB}")
 
-file(GLOB RUNNER_SRCS src/runners/*.c)
-
 add_executable(wychcheck
     src/main.c
     src/hex.c
     src/cjson/cJSON.c
-    ${RUNNER_SRCS}
+    src/runners/aead.c
+    src/runners/mac.c
+    src/runners/hkdf.c
+    src/runners/ind_cpa.c
+    src/runners/keywrap.c
+    src/runners/ecdh.c
+    src/runners/ecdsa.c
+    src/runners/ecdsa_p1363.c
+    src/runners/eddsa.c
+    src/runners/xdh.c
+    src/runners/rsa_sig.c
+    src/runners/rsa_oaep.c
+    src/runners/rsa_pss.c
 )
 
 target_include_directories(wychcheck PRIVATE src)
+target_compile_definitions(wychcheck PRIVATE
+    WYCHEPROOF_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/wycheproof"
+)
 target_link_libraries(wychcheck ${WOLFSSL_LIB} m pthread)
 
 # so the binary finds libwolfssl.so at runtime even if a system copy exists

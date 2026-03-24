@@ -1,29 +1,22 @@
 #include "runner.h"
 #include <wolfssl/wolfcrypt/kdf.h>
 
-test_result_t run_hkdf(const char *path)
+test_result_t run_hkdf(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #ifdef HAVE_HKDF
-    cJSON *root, *algo_item, *groups, *group, *tests, *tc;
-    const char *algo, *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *algo_item, *groups, *group, *tests, *tc;
+    const char *algo;
+    int hash_type = WC_HASH_TYPE_NONE;
 
     algo_item = cJSON_GetObjectItem(root, "algorithm");
-    if (!algo_item) { cJSON_Delete(root); return res; }
+    if (!algo_item) { return res; }
     algo = algo_item->valuestring;
-
-    int hash_type = WC_HASH_TYPE_NONE;
     if (strcmp(algo, "HKDF-SHA-1") == 0)   hash_type = WC_SHA;
     else if (strcmp(algo, "HKDF-SHA-256") == 0) hash_type = WC_SHA256;
     else if (strcmp(algo, "HKDF-SHA-384") == 0) hash_type = WC_SHA384;
     else if (strcmp(algo, "HKDF-SHA-512") == 0) hash_type = WC_SHA512;
-    else { cJSON_Delete(root); return res; }
+    else { return res; }
 
     groups = cJSON_GetObjectItem(root, "testGroups");
     cJSON_ArrayForEach(group, groups) {
@@ -66,9 +59,9 @@ test_result_t run_hkdf(const char *path)
             free(ikm); free(salt); free(info); free(okm); free(out);
         }
     }
-    cJSON_Delete(root);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

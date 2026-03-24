@@ -5,18 +5,11 @@
 #include <wolfssl/wolfcrypt/asn_public.h>
 #endif
 
-test_result_t run_rsa_sig(const char *path)
+test_result_t run_rsa_sig(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #ifndef NO_RSA
-    cJSON *root, *groups, *group, *tests, *tc;
-    const char *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *groups, *group, *tests, *tc;
 
     groups = cJSON_GetObjectItem(root, "testGroups");
     cJSON_ArrayForEach(group, groups) {
@@ -103,9 +96,9 @@ test_result_t run_rsa_sig(const char *path)
         wc_FreeRsaKey(key);
         free(key);
     }
-    cJSON_Delete(root);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

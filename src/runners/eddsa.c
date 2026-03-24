@@ -7,18 +7,11 @@
 #include <wolfssl/wolfcrypt/ed448.h>
 #endif
 
-test_result_t run_eddsa(const char *path)
+test_result_t run_eddsa(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
 #if defined(HAVE_ED25519) || defined(HAVE_ED448)
-    cJSON *root, *groups, *group, *tests, *tc;
-    const char *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
+    cJSON *groups, *group, *tests, *tc;
 
     groups = cJSON_GetObjectItem(root, "testGroups");
     cJSON_ArrayForEach(group, groups) {
@@ -135,9 +128,9 @@ test_result_t run_eddsa(const char *path)
 #endif
         free(pk_bytes);
     }
-    cJSON_Delete(root);
 #else
-    (void)path;
+    (void)root;
+    (void)fname;
 #endif
     return res;
 }

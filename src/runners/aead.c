@@ -120,7 +120,6 @@ static int test_chacha_poly(const uint8_t *key, size_t key_len,
                             const uint8_t *msg, size_t msg_len)
 {
     uint8_t *out = NULL;
-    uint8_t combined[16384];
     int ret;
 
     (void)key_len;
@@ -131,9 +130,6 @@ static int test_chacha_poly(const uint8_t *key, size_t key_len,
         out = malloc(msg_len);
         if (!out) return -1;
     }
-
-    /* wc_ChaCha20Poly1305_Decrypt wants ct without tag appended */
-    (void)combined;
     ret = wc_ChaCha20Poly1305_Decrypt(key, iv, aad, (word32)aad_len,
                                       ct, (word32)ct_len,
                                       tag, out);
@@ -210,30 +206,21 @@ static aead_fn pick_aead(const char *algo)
     return NULL;
 }
 
-test_result_t run_aead(const char *path)
+test_result_t run_aead(cJSON *root, const char *fname)
 {
     test_result_t res = {0, 0, 0};
-    cJSON *root, *algo_item, *groups, *group, *tests, *tc;
+    cJSON *algo_item, *groups, *group, *tests, *tc;
     aead_fn fn;
     const char *algo;
-    const char *fname;
-
-    root = load_json(path);
-    if (!root) return res;
-
-    fname = strrchr(path, '/');
-    fname = fname ? fname + 1 : path;
 
     algo_item = cJSON_GetObjectItem(root, "algorithm");
     if (!algo_item || !cJSON_IsString(algo_item)) {
-        cJSON_Delete(root);
         return res;
     }
     algo = algo_item->valuestring;
     fn = pick_aead(algo);
     if (!fn) {
         /* algorithm not compiled in */
-        cJSON_Delete(root);
         return res;
     }
 
@@ -269,6 +256,5 @@ test_result_t run_aead(const char *path)
         }
     }
 
-    cJSON_Delete(root);
     return res;
 }
