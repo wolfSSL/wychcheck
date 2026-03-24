@@ -74,6 +74,9 @@ int main(int argc, char **argv)
 
     (void)argc; (void)argv;
 
+    /* Line-buffer stdout so output survives if a crypto library call crashes */
+    setvbuf(stdout, NULL, _IOLBF, 0);
+
     if (!wycheproof_dir)
         wycheproof_dir = WYCHEPROOF_DEFAULT;
 

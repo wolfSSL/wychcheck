@@ -49,12 +49,12 @@ target_compile_definitions(wychcheck PRIVATE
 )
 target_link_libraries(wychcheck ${WOLFSSL_LIB} m pthread)
 
-# so the binary finds libwolfssl.so at runtime even if a system copy exists
+# Force RPATH (not RUNPATH) so the binary finds the correct libwolfssl.so
+# even when a different version is installed system-wide in ldconfig.
+# RUNPATH is searched after ldconfig; RPATH is searched before it.
 get_filename_component(WOLFSSL_LIB_DIR ${WOLFSSL_LIB} DIRECTORY)
 set_target_properties(wychcheck PROPERTIES
     BUILD_RPATH "${WOLFSSL_LIB_DIR}"
     INSTALL_RPATH "${WOLFSSL_LIB_DIR}"
 )
-# prefer our RPATH over system paths
-set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+target_link_options(wychcheck PRIVATE "LINKER:--disable-new-dtags")
