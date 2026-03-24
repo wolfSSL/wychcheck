@@ -47,7 +47,11 @@ test_result_t run_rsa_sig(cJSON *root, const char *fname)
         }
         free(pub_der);
 
-        if (!key_ok) {
+        if (!key_ok
+#ifdef RSA_MAX_SIZE
+            || (wc_RsaEncryptSize(key) * 8 > RSA_MAX_SIZE)
+#endif
+        ) {
             tests = cJSON_GetObjectItem(group, "tests");
             cJSON_ArrayForEach(tc, tests) { res.skipped++; }
             wc_FreeRsaKey(key);
