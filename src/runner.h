@@ -69,6 +69,10 @@ static inline int wc_mgf_type(const char *mgfSha)
     if (strcmp(mgfSha, "SHA-256") == 0) return WC_MGF1SHA256;
     if (strcmp(mgfSha, "SHA-384") == 0) return WC_MGF1SHA384;
     if (strcmp(mgfSha, "SHA-512") == 0) return WC_MGF1SHA512;
+#ifdef WOLFSSL_SHA512
+    if (strcmp(mgfSha, "SHA-512/224") == 0) return WC_MGF1SHA512_224;
+    if (strcmp(mgfSha, "SHA-512/256") == 0) return WC_MGF1SHA512_256;
+#endif
     return WC_MGF1NONE;
 }
 
