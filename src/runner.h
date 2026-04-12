@@ -131,5 +131,8 @@ test_result_t run_dsa_p1363(cJSON *root, const char *fname);
 test_result_t run_rsa_decrypt(cJSON *root, const char *fname);
 test_result_t run_pbkdf2(cJSON *root, const char *fname);
 test_result_t run_pbes2(cJSON *root, const char *fname);
+test_result_t run_slhdsa_acvp_keygen(cJSON *root, const char *fname);
+test_result_t run_slhdsa_acvp_sigver(cJSON *root, const char *fname);
+test_result_t run_slhdsa_acvp_siggen(cJSON *root, const char *fname);
 
 #endif

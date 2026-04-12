@@ -69,6 +69,9 @@ static const runner_def_t runners[] = {
     { "mlkem_acvp_encapdecap.json",             run_mlkem_acvp_encapdecap },
     { "pbkdf_test_schema.json",                 run_pbkdf2 },
     { "pbe_test_schema.json",                   run_pbes2 },
+    { "slhdsa_acvp_keygen.json",                run_slhdsa_acvp_keygen },
+    { "slhdsa_acvp_sigver.json",                run_slhdsa_acvp_sigver },
+    { "slhdsa_acvp_siggen.json",                run_slhdsa_acvp_siggen },
     { NULL, NULL }
 };
 

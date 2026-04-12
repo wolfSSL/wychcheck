@@ -49,6 +49,7 @@ add_executable(wolfcrypt-check
     src/runners/mlkem_acvp.c
     src/runners/pbkdf2.c
     src/runners/pbes2.c
+    src/runners/slhdsa_acvp.c
 )
 
 target_include_directories(wolfcrypt-check PRIVATE src)

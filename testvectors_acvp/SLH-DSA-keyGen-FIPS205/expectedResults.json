@@ -1,0 +1,16 @@
+{
+  "algorithm": "SLH-DSA",
+  "testGroups": [
+    {
+      "tgId": 1,
+      "tests": [
+        {
+          "tcId": 10,
+          "pk": "376b3ab61bd4f942ff67948aae62804728d10f122f7d5b5eb942c431993ecef0",
+          "sk": "7369a51f8a54a9e76cb00f752ecadf036cabd4eb1b1e7e7017eabc4c17a359d9376b3ab61bd4f942ff67948aae62804728d10f122f7d5b5eb942c431993ecef0"
+        }
+      ]
+    }
+  ],
+  "vsId": 2716977
+}

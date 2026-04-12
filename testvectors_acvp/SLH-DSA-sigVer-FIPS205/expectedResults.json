@@ -1,0 +1,15 @@
+{
+  "algorithm": "SLH-DSA",
+  "testGroups": [
+    {
+      "tgId": 1,
+      "tests": [
+        {
+          "tcId": 9,
+          "testPassed": true
+        }
+      ]
+    }
+  ],
+  "vsId": 2716979
+}

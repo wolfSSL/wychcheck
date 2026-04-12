@@ -58,6 +58,18 @@ are generated from them by `merge_acvp.py`.
 | `ML-DSA-sigGen-FIPS204/` | FIPS 204 (ML-DSA) | Signature generation | 360 |
 | `ML-KEM-keyGen-FIPS203/` | FIPS 203 (ML-KEM) | Key generation | 75 |
 | `ML-KEM-encapDecap-FIPS203/` | FIPS 203 (ML-KEM) | Encap + decap + key validation | 165 |
+| `SLH-DSA-keyGen-FIPS205/` | FIPS 205 (SLH-DSA) | Key generation | 1 |
+| `SLH-DSA-sigVer-FIPS205/` | FIPS 205 (SLH-DSA) | Signature verification | 1 |
+| `SLH-DSA-sigGen-FIPS205/` | FIPS 205 (SLH-DSA) | Signature generation | 2 |
+
+The ML-DSA and ML-KEM vectors were requested directly from the NIST ACVP Demo
+Server. The SLH-DSA vectors were sourced from BoringSSL's bundled NIST ACVP
+test suite (`util/fipstools/acvp/acvptool/test/`) at commit `75a1350` of the
+BoringSSL repository; they originate from NIST ACVP session 565841 (downloaded
+2024-12-03T23:29:11Z, vsIds 2716977–2716979). The vectors cover the
+`SLH-DSA-SHA2-128s` parameter set only. wolfSSL implements the SHAKE variants
+(`SLH-DSA-SHAKE-*`) but not the SHA2 variants, so these tests are skipped at
+runtime until matching SHAKE vectors are added.
 
 Each raw directory contains exactly two files from the NIST server:
 - `prompt.json` — test group definitions and input values

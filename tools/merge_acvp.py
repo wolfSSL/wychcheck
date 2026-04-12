@@ -32,6 +32,10 @@ OPERATIONS = [
     # ML-KEM (FIPS 203) — vectors must be downloaded to testvectors_acvp/
     ("ML-KEM-keyGen-FIPS203",     "mlkem_acvp_keygen.json"),
     ("ML-KEM-encapDecap-FIPS203", "mlkem_acvp_encapdecap.json"),
+    # SLH-DSA (FIPS 205) — vendored from BoringSSL's bundled NIST ACVP vectors
+    ("SLH-DSA-keyGen-FIPS205", "slhdsa_acvp_keygen.json"),
+    ("SLH-DSA-sigVer-FIPS205", "slhdsa_acvp_sigver.json"),
+    ("SLH-DSA-sigGen-FIPS205", "slhdsa_acvp_siggen.json"),
 ]
 
 
