@@ -376,8 +376,9 @@ test_result_t run_mldsa_sign_noseed(cJSON *root, const char *fname)
             wc_dilithium_import_public( pk_bytes, (word32)pk_len, &key) == 0 &&
             /* WOLFSSL_DILITHIUM_CHECK_KEY is auto-defined when both public and
              * private key support are present and NO_CHECK_KEY is not set.
-             * Without it, InvalidPrivateKey groups are skipped rather than
-             * passed, and the key consistency check is silently omitted. */
+             * Without it, import_private succeeds even on a malformed key and
+             * sign() returns 0, causing "invalid" test cases (InvalidPrivateKey
+             * groups) to FAIL rather than pass. */
 #ifdef WOLFSSL_DILITHIUM_CHECK_KEY
             wc_dilithium_check_key(&key) == 0 &&
 #endif

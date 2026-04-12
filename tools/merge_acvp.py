@@ -18,9 +18,20 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 ACVP_DIR = os.path.join(PROJECT_DIR, "testvectors_acvp")
 
 OPERATIONS = [
+    # Each entry: (acvp_op_dir, schema_name)
+    # schema_name serves two roles:
+    #   1. Injected as prompt["schema"] into the merged JSON — must exactly
+    #      match a key in main.c's runners[] dispatch table.
+    #   2. Determines the output filename: schema_name[:-5] + "_test.json"
+    #      (e.g. "mldsa_acvp_keygen.json" -> "mldsa_acvp_keygen_test.json").
+    # These two uses are coupled: using the _test.json filename as schema_name
+    # would produce JSON the runner silently skips at runtime.
     ("ML-DSA-keyGen-FIPS204", "mldsa_acvp_keygen.json"),
     ("ML-DSA-sigVer-FIPS204", "mldsa_acvp_sigver.json"),
     ("ML-DSA-sigGen-FIPS204", "mldsa_acvp_siggen.json"),
+    # ML-KEM (FIPS 203) — vectors must be downloaded to testvectors_acvp/
+    ("ML-KEM-keyGen-FIPS203",     "mlkem_acvp_keygen.json"),
+    ("ML-KEM-encapDecap-FIPS203", "mlkem_acvp_encapdecap.json"),
 ]
 
 
@@ -50,6 +61,9 @@ def merge(op_dir, schema_name, out_path):
             tc_id = tc["tcId"]
             if tg_id in exp_by_tg and tc_id in exp_by_tg[tg_id]:
                 tc.update(exp_by_tg[tg_id][tc_id])
+            else:
+                print(f"  WARNING: no expectedResults entry for tgId={tg_id} tcId={tc_id}",
+                      file=sys.stderr)
 
     prompt["schema"] = schema_name
 
@@ -64,6 +78,10 @@ def merge(op_dir, schema_name, out_path):
 def main():
     print("Merging ACVP prompt + expectedResults...")
     for op_dir, schema_name in OPERATIONS:
+        prompt_path = os.path.join(ACVP_DIR, op_dir, "prompt.json")
+        if not os.path.exists(prompt_path):
+            print(f"  SKIP {op_dir}: vectors not found (download to testvectors_acvp/{op_dir}/)")
+            continue
         out_path = os.path.join(ACVP_DIR, schema_name.replace(".json", "_test.json"))
         merge(op_dir, schema_name, out_path)
     print("Done.")

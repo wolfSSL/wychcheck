@@ -206,18 +206,19 @@ test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname)
             if (ctx_item && cJSON_IsString(ctx_item))
                 ctx = hex_decode(ctx_item->valuestring, &ctx_len);
 
+            /* Init before any goto so sigver_next always frees key safely. */
+            wc_dilithium_init(&key);
+
             if (!pk || !msg || !sig || ctx_len > 255) {
                 res.skipped++;
                 goto sigver_next;
             }
 
-            wc_dilithium_init(&key);
             ret = wc_dilithium_set_level(&key, (byte)level);
             if (ret == 0)
                 ret = wc_dilithium_import_public(pk, (word32)pk_len, &key);
 
             if (ret != 0) {
-                wc_dilithium_free(&key);
                 res.skipped++;
                 goto sigver_next;
             }
@@ -227,7 +228,6 @@ test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname)
                 ctx, (byte)ctx_len,
                 msg, (word32)msg_len,
                 &stat, &key);
-            wc_dilithium_free(&key);
 
             {
                 int got_pass = (ret == 0 && stat == 1) ? 1 : 0;
@@ -244,6 +244,7 @@ test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname)
             }
 
         sigver_next:
+            wc_dilithium_free(&key);
             free(pk); free(msg); free(ctx); free(sig);
         }
     }
@@ -261,7 +262,15 @@ test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname)
  * Skips internal and preHash groups.
  * For deterministic groups: rnd = 0^32.
  * For non-deterministic groups: rnd is provided per test case.
+ *
  * Output is compared byte-exact to the NIST expected signature.
+ * Byte-exact is correct here (unlike the Wycheproof sign_seed/noseed
+ * runners which use round-trip verify): ACVP siggen is fully
+ * deterministic because the server provides an explicit 32-byte rnd.
+ * wc_dilithium_sign_ctx_msg_with_seed consumes rnd directly, so the
+ * output is completely determined by (sk, msg, ctx, rnd).  Byte-exact
+ * comparison is tighter than round-trip — it catches off-by-one bugs
+ * in rnd handling that a round-trip verify would miss.
  * ------------------------------------------------------------------ */
 
 test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname)
@@ -312,6 +321,9 @@ test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname)
             if (ctx_item && cJSON_IsString(ctx_item))
                 ctx = hex_decode(ctx_item->valuestring, &ctx_len);
 
+            /* Init before any goto so siggen_next always frees key safely. */
+            wc_dilithium_init(&key);
+
             if (!sk || !msg || !exp_sig || ctx_len > 255) {
                 res.skipped++;
                 goto siggen_next;
@@ -339,27 +351,23 @@ test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname)
                 rnd = rnd_bytes;
             }
 
-            wc_dilithium_init(&key);
             ret = wc_dilithium_set_level(&key, (byte)level);
             if (ret == 0)
                 ret = wc_dilithium_import_private(sk, (word32)sk_len, &key);
 
             if (ret != 0) {
-                wc_dilithium_free(&key);
                 res.skipped++;
                 goto siggen_next;
             }
 
             sig_sz = wc_dilithium_sig_size(&key);
             if (sig_sz <= 0) {
-                wc_dilithium_free(&key);
                 res.skipped++;
                 goto siggen_next;
             }
             got_sig_len = (word32)sig_sz;
             got_sig = (uint8_t *)malloc(got_sig_len);
             if (!got_sig) {
-                wc_dilithium_free(&key);
                 res.skipped++;
                 goto siggen_next;
             }
@@ -369,7 +377,6 @@ test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname)
                 msg, (word32)msg_len,
                 got_sig, &got_sig_len,
                 &key, rnd);
-            wc_dilithium_free(&key);
 
             if (ret != 0) {
                 res.failed++;
@@ -383,6 +390,7 @@ test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname)
             }
 
         siggen_next:
+            wc_dilithium_free(&key);
             free(sk); free(msg); free(ctx);
             free(rnd_bytes); free(exp_sig); free(got_sig);
         }

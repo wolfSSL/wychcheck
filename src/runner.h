@@ -120,5 +120,11 @@ test_result_t run_mldsa_sign_noseed(cJSON *root, const char *fname);
 test_result_t run_mldsa_acvp_keygen(cJSON *root, const char *fname);
 test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname);
 test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname);
+test_result_t run_mlkem(cJSON *root, const char *fname);
+test_result_t run_mlkem_encaps(cJSON *root, const char *fname);
+test_result_t run_mlkem_keygen(cJSON *root, const char *fname);
+test_result_t run_mlkem_decaps(cJSON *root, const char *fname);
+test_result_t run_pbkdf2(cJSON *root, const char *fname);
+test_result_t run_pbes2(cJSON *root, const char *fname);
 
 #endif

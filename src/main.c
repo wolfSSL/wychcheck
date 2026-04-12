@@ -57,6 +57,12 @@ static const runner_def_t runners[] = {
     { "mldsa_acvp_keygen.json",                 run_mldsa_acvp_keygen },
     { "mldsa_acvp_sigver.json",                 run_mldsa_acvp_sigver },
     { "mldsa_acvp_siggen.json",                 run_mldsa_acvp_siggen },
+    { "mlkem_test_schema.json",                 run_mlkem },
+    { "mlkem_encaps_test_schema.json",          run_mlkem_encaps },
+    { "mlkem_keygen_seed_test_schema.json",     run_mlkem_keygen },
+    { "mlkem_semi_expanded_decaps_test_schema.json", run_mlkem_decaps },
+    { "pbkdf_test_schema.json",                 run_pbkdf2 },
+    { "pbe_test_schema.json",                   run_pbes2 },
     { NULL, NULL }
 };
 
@@ -172,8 +178,11 @@ int main(int argc, char **argv)
     scan_dir(vectors_dir, &total_pass, &total_fail, &total_skip,
              &files_tested, &files_skipped);
 
-    scan_dir(acvp_dir, &total_pass, &total_fail, &total_skip,
-             &files_tested, &files_skipped);
+    if (stat(acvp_dir, &st) != 0 || !S_ISDIR(st.st_mode))
+        printf("note: ACVP directory not found, skipping: %s\n", acvp_dir);
+    else
+        scan_dir(acvp_dir, &total_pass, &total_fail, &total_skip,
+                 &files_tested, &files_skipped);
 
     printf("\n--- summary ---\n");
     printf("files tested: %d, skipped: %d\n", files_tested, files_skipped);
