@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(wychcheck C)
+project(wolfcrypt-check C)
 
 set(WOLFSSL_DIR "$ENV{WOLFSSL_DIR}")
 
@@ -24,7 +24,7 @@ if(NOT WOLFSSL_LIB)
 endif()
 message(STATUS "Using wolfssl: ${WOLFSSL_LIB}")
 
-add_executable(wychcheck
+add_executable(wolfcrypt-check
     src/main.c
     src/hex.c
     src/cjson/cJSON.c
@@ -41,20 +41,23 @@ add_executable(wychcheck
     src/runners/rsa_sig.c
     src/runners/rsa_oaep.c
     src/runners/rsa_pss.c
+    src/runners/mldsa.c
+    src/runners/mldsa_acvp.c
 )
 
-target_include_directories(wychcheck PRIVATE src)
-target_compile_definitions(wychcheck PRIVATE
+target_include_directories(wolfcrypt-check PRIVATE src)
+target_compile_definitions(wolfcrypt-check PRIVATE
     WYCHEPROOF_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/wycheproof"
+    ACVP_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/testvectors_acvp"
 )
-target_link_libraries(wychcheck ${WOLFSSL_LIB} m pthread)
+target_link_libraries(wolfcrypt-check ${WOLFSSL_LIB} m pthread)
 
 # Force RPATH (not RUNPATH) so the binary finds the correct libwolfssl.so
 # even when a different version is installed system-wide in ldconfig.
 # RUNPATH is searched after ldconfig; RPATH is searched before it.
 get_filename_component(WOLFSSL_LIB_DIR ${WOLFSSL_LIB} DIRECTORY)
-set_target_properties(wychcheck PROPERTIES
+set_target_properties(wolfcrypt-check PROPERTIES
     BUILD_RPATH "${WOLFSSL_LIB_DIR}"
     INSTALL_RPATH "${WOLFSSL_LIB_DIR}"
 )
-target_link_options(wychcheck PRIVATE "LINKER:--disable-new-dtags")
+target_link_options(wolfcrypt-check PRIVATE "LINKER:--disable-new-dtags")

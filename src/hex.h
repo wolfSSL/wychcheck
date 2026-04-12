@@ -1,5 +1,5 @@
-#ifndef WYCHCHECK_HEX_H
-#define WYCHCHECK_HEX_H
+#ifndef WOLFCRYPT_CHECK_HEX_H
+#define WOLFCRYPT_CHECK_HEX_H
 
 #include <stddef.h>
 #include <stdint.h>

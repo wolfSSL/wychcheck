@@ -4,6 +4,7 @@
 #include <wolfssl/wolfcrypt/rsa.h>
 #include <wolfssl/wolfcrypt/asn_public.h>
 #include <wolfssl/wolfcrypt/signature.h>
+#include <wolfssl/wolfcrypt/hash.h>
 #endif
 
 test_result_t run_rsa_sig(cJSON *root, const char *fname)
@@ -68,12 +69,38 @@ test_result_t run_rsa_sig(cJSON *root, const char *fname)
             msg_bytes = get_hex(tc, "msg", &msg_len);
             sig_bytes = get_hex(tc, "sig", &sig_len);
 
-            ret = wc_SignatureVerify(
-                      (enum wc_HashType)hash_type,
-                      WC_SIGNATURE_TYPE_RSA_W_ENC,
-                      msg_bytes, (word32)msg_len,
-                      sig_bytes, (word32)sig_len,
-                      key, sizeof(*key));
+            /* wc_SignatureVerify rejects data_len==0 (empty message),
+               so hash manually and use wc_SignatureVerifyHash instead. */
+            if (msg_len == 0) {
+                byte hash_buf[WC_MAX_DIGEST_SIZE + 36]; /* room for DER prefix */
+                word32 h_len = (word32)hash_len;
+                word32 h_enc_len;
+                int oid;
+
+                ret = wc_Hash((enum wc_HashType)hash_type,
+                              msg_bytes, 0, hash_buf, h_len);
+                if (ret == 0) {
+                    oid = wc_HashGetOID((enum wc_HashType)hash_type);
+                    if (oid < 0) { ret = oid; }
+                    else {
+                        h_enc_len = (word32)wc_EncodeSignature(
+                                        hash_buf, hash_buf, h_len, oid);
+                        ret = wc_SignatureVerifyHash(
+                                  (enum wc_HashType)hash_type,
+                                  WC_SIGNATURE_TYPE_RSA_W_ENC,
+                                  hash_buf, h_enc_len,
+                                  sig_bytes, (word32)sig_len,
+                                  key, sizeof(*key));
+                    }
+                }
+            } else {
+                ret = wc_SignatureVerify(
+                          (enum wc_HashType)hash_type,
+                          WC_SIGNATURE_TYPE_RSA_W_ENC,
+                          msg_bytes, (word32)msg_len,
+                          sig_bytes, (word32)sig_len,
+                          key, sizeof(*key));
+            }
 
             if (is_acceptable(tc)) {
                 res.passed++;

@@ -87,7 +87,7 @@ static int test_aes_eax(const uint8_t *key, size_t key_len,
                         const uint8_t *msg, size_t msg_len)
 {
     uint8_t *out = NULL;
-    uint8_t verify_tag[AES_BLOCK_SIZE];
+    uint8_t verify_tag[WC_AES_BLOCK_SIZE];
     int ret;
 
     if (msg_len > 0) {
@@ -95,7 +95,7 @@ static int test_aes_eax(const uint8_t *key, size_t key_len,
         if (!out) return -1;
     }
 
-    if (tag_len > AES_BLOCK_SIZE) { free(out); return -1; }
+    if (tag_len > WC_AES_BLOCK_SIZE) { free(out); return -1; }
     memcpy(verify_tag, tag, tag_len);
 
     ret = wc_AesEaxDecryptAuth(key, (word32)key_len,

@@ -85,7 +85,7 @@ test_result_t run_mac(cJSON *root, const char *fname)
             }
 #ifdef WOLFSSL_CMAC
             else if (strcmp(algo, "AES-CMAC") == 0) {
-                uint8_t out[AES_BLOCK_SIZE];
+                uint8_t out[WC_AES_BLOCK_SIZE];
                 word32 out_len = sizeof(out);
                 int ret = wc_AesCmacGenerate(out, &out_len,
                                              msg, (word32)msg_len,

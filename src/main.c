@@ -1,6 +1,7 @@
 #include "runner.h"
 #include <dirent.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -50,6 +51,12 @@ static const runner_def_t runners[] = {
     { "rsassa_pkcs1_verify_schema_v1.json",      run_rsa_sig },
     { "rsaes_oaep_decrypt_schema_v1.json",       run_rsa_oaep },
     { "rsassa_pss_verify_schema_v1.json",        run_rsa_pss },
+    { "mldsa_verify_schema.json",               run_mldsa_verify },
+    { "mldsa_sign_seed_schema.json",            run_mldsa_sign_seed },
+    { "mldsa_sign_noseed_schema.json",          run_mldsa_sign_noseed },
+    { "mldsa_acvp_keygen.json",                 run_mldsa_acvp_keygen },
+    { "mldsa_acvp_sigver.json",                 run_mldsa_acvp_sigver },
+    { "mldsa_acvp_siggen.json",                 run_mldsa_acvp_siggen },
     { NULL, NULL }
 };
 
@@ -63,38 +70,15 @@ static runner_fn find_runner(const char *schema)
     return NULL;
 }
 
-int main(int argc, char **argv)
+static void scan_dir(const char *dir, int *total_pass, int *total_fail,
+                     int *total_skip, int *files_tested, int *files_skipped)
 {
-    const char *wycheproof_dir = getenv("WYCHEPROOF_DIR");
-    char vectors_dir[PATH_MAX];
     struct dirent **namelist;
     int n_files, i;
-    int total_pass = 0, total_fail = 0, total_skip = 0;
-    int files_tested = 0, files_skipped = 0;
 
-    (void)argc; (void)argv;
-
-    /* Line-buffer stdout so output survives if a crypto library call crashes */
-    setvbuf(stdout, NULL, _IOLBF, 0);
-
-    if (!wycheproof_dir)
-        wycheproof_dir = WYCHEPROOF_DEFAULT;
-
-    /* try testvectors_v1/ first, then testvectors/ */
-    snprintf(vectors_dir, sizeof(vectors_dir), "%s/testvectors_v1", wycheproof_dir);
-    n_files = scandir(vectors_dir, &namelist, NULL, alphasort);
-    if (n_files < 0) {
-        snprintf(vectors_dir, sizeof(vectors_dir), "%s/testvectors", wycheproof_dir);
-        n_files = scandir(vectors_dir, &namelist, NULL, alphasort);
-    }
-    if (n_files < 0) {
-        fprintf(stderr, "Cannot open %s/testvectors_v1/ or testvectors/\n",
-                wycheproof_dir);
-        return 2;
-    }
-
-    printf("wychcheck: testing wolfSSL against Wycheproof vectors\n");
-    printf("vectors: %s\n\n", vectors_dir);
+    n_files = scandir(dir, &namelist, NULL, alphasort);
+    if (n_files < 0)
+        return;
 
     for (i = 0; i < n_files; i++) {
         char path[PATH_MAX];
@@ -106,51 +90,90 @@ int main(int argc, char **argv)
         if (nlen < 6 || strcmp(namelist[i]->d_name + nlen - 5, ".json") != 0)
             goto next;
 
-        snprintf(path, sizeof(path), "%s/%s", vectors_dir, namelist[i]->d_name);
+        snprintf(path, sizeof(path), "%s/%s", dir, namelist[i]->d_name);
 
         root = load_json(path);
         if (!root) {
-            files_skipped++;
+            (*files_skipped)++;
             goto next;
         }
 
         schema_item = cJSON_GetObjectItem(root, "schema");
         if (!schema_item || !cJSON_IsString(schema_item)) {
-            files_skipped++;
+            (*files_skipped)++;
             goto next;
         }
 
         run = find_runner(schema_item->valuestring);
-
         if (!run) {
-            files_skipped++;
+            (*files_skipped)++;
             goto next;
         }
 
         r = run(root, namelist[i]->d_name);
         if (r.passed + r.failed + r.skipped == 0) {
-            /* runner compiled out (feature disabled) */
             printf("SKIP  %-50s (not compiled)\n", namelist[i]->d_name);
-            files_skipped++;
+            (*files_skipped)++;
         } else if (r.failed == 0) {
             printf("PASS  %-50s %d passed, %d skipped\n",
                    namelist[i]->d_name, r.passed, r.skipped);
-            files_tested++;
+            (*files_tested)++;
         } else {
             printf("FAIL  %-50s %d passed, %d FAILED, %d skipped\n",
                    namelist[i]->d_name, r.passed, r.failed, r.skipped);
-            files_tested++;
+            (*files_tested)++;
         }
 
-        total_pass += r.passed;
-        total_fail += r.failed;
-        total_skip += r.skipped;
+        *total_pass += r.passed;
+        *total_fail += r.failed;
+        *total_skip += r.skipped;
 
     next:
         cJSON_Delete(root);
         free(namelist[i]);
     }
     free(namelist);
+}
+
+int main(int argc, char **argv)
+{
+    const char *wycheproof_dir = getenv("WYCHEPROOF_DIR");
+    const char *acvp_dir       = getenv("ACVP_DIR");
+    char vectors_dir[PATH_MAX];
+    struct stat st;
+    int total_pass = 0, total_fail = 0, total_skip = 0;
+    int files_tested = 0, files_skipped = 0;
+
+    (void)argc; (void)argv;
+
+    /* Line-buffer stdout so output survives if a crypto library call crashes */
+    setvbuf(stdout, NULL, _IOLBF, 0);
+
+    if (!wycheproof_dir)
+        wycheproof_dir = WYCHEPROOF_DEFAULT;
+    if (!acvp_dir)
+        acvp_dir = ACVP_DEFAULT;
+
+    /* try testvectors_v1/ first, then testvectors/ */
+    snprintf(vectors_dir, sizeof(vectors_dir), "%s/testvectors_v1", wycheproof_dir);
+    if (stat(vectors_dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
+        snprintf(vectors_dir, sizeof(vectors_dir), "%s/testvectors", wycheproof_dir);
+        if (stat(vectors_dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
+            fprintf(stderr, "Cannot open %s/testvectors_v1/ or testvectors/\n",
+                    wycheproof_dir);
+            return 2;
+        }
+    }
+
+    printf("wolfcrypt-check: testing wolfSSL against Wycheproof and ACVP vectors\n");
+    printf("wycheproof: %s\n", vectors_dir);
+    printf("acvp:       %s\n\n", acvp_dir);
+
+    scan_dir(vectors_dir, &total_pass, &total_fail, &total_skip,
+             &files_tested, &files_skipped);
+
+    scan_dir(acvp_dir, &total_pass, &total_fail, &total_skip,
+             &files_tested, &files_skipped);
 
     printf("\n--- summary ---\n");
     printf("files tested: %d, skipped: %d\n", files_tested, files_skipped);

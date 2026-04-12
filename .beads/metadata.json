@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "wolfssl_wycheproof",
+  "project_id": "61d7d722-ed11-45c6-8314-46831a176b37"
+}

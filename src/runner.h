@@ -1,5 +1,5 @@
-#ifndef WYCHCHECK_RUNNER_H
-#define WYCHCHECK_RUNNER_H
+#ifndef WOLFCRYPT_CHECK_RUNNER_H
+#define WOLFCRYPT_CHECK_RUNNER_H
 
 #include <wolfssl/options.h>
 #include <wolfssl/wolfcrypt/settings.h>
@@ -114,5 +114,11 @@ test_result_t run_xdh(cJSON *root, const char *fname);
 test_result_t run_rsa_sig(cJSON *root, const char *fname);
 test_result_t run_rsa_oaep(cJSON *root, const char *fname);
 test_result_t run_rsa_pss(cJSON *root, const char *fname);
+test_result_t run_mldsa_verify(cJSON *root, const char *fname);
+test_result_t run_mldsa_sign_seed(cJSON *root, const char *fname);
+test_result_t run_mldsa_sign_noseed(cJSON *root, const char *fname);
+test_result_t run_mldsa_acvp_keygen(cJSON *root, const char *fname);
+test_result_t run_mldsa_acvp_sigver(cJSON *root, const char *fname);
+test_result_t run_mldsa_acvp_siggen(cJSON *root, const char *fname);
 
 #endif

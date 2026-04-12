@@ -13,7 +13,7 @@ static int test_aes_cbc_pkcs5(const uint8_t *key, size_t key_len,
     int ret, pad, i;
 
     (void)iv_len;
-    if (ct_len == 0 || ct_len % AES_BLOCK_SIZE != 0)
+    if (ct_len == 0 || ct_len % WC_AES_BLOCK_SIZE != 0)
         return -1;
 
     out = malloc(ct_len);
@@ -31,7 +31,7 @@ static int test_aes_cbc_pkcs5(const uint8_t *key, size_t key_len,
 
     /* verify and strip PKCS5 padding */
     pad = out[ct_len - 1];
-    if (pad < 1 || pad > AES_BLOCK_SIZE) { free(out); return -1; }
+    if (pad < 1 || pad > WC_AES_BLOCK_SIZE) { free(out); return -1; }
     for (i = 0; i < pad; i++) {
         if (out[ct_len - 1 - i] != pad) { free(out); return -1; }
     }
@@ -53,7 +53,7 @@ static int test_aes_xts(const uint8_t *key, size_t key_len,
 {
     XtsAes xts;
     uint8_t *out;
-    uint8_t tweak[AES_BLOCK_SIZE];
+    uint8_t tweak[WC_AES_BLOCK_SIZE];
     int ret;
 
     /* XTS key is split: half for AES, half for tweak cipher */
@@ -73,7 +73,7 @@ static int test_aes_xts(const uint8_t *key, size_t key_len,
     ret = wc_AesXtsSetKeyNoInit(&xts, key, (word32)key_len, AES_DECRYPTION);
     if (ret != 0) { wc_AesXtsFree(&xts); free(out); return ret; }
 
-    ret = wc_AesXtsDecrypt(&xts, out, ct, (word32)ct_len, tweak, AES_BLOCK_SIZE);
+    ret = wc_AesXtsDecrypt(&xts, out, ct, (word32)ct_len, tweak, WC_AES_BLOCK_SIZE);
     wc_AesXtsFree(&xts);
     if (ret != 0) { free(out); return ret; }
 
