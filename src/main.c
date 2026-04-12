@@ -121,6 +121,7 @@ static void scan_dir(const char *dir, int *total_pass, int *total_fail,
 
         run = find_runner(schema_item->valuestring);
         if (!run) {
+            printf("SKIP  %-50s (no runner)\n", namelist[i]->d_name);
             (*files_skipped)++;
             goto next;
         }
