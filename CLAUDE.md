@@ -16,6 +16,7 @@ name, and reports per-file and overall pass/fail/skip counts.
 |---|---|---|
 | wolfSSL source tree | `~/wolfssl` | Must be *built* (autotools or CMake); set `WOLFSSL_DIR=~/wolfssl` |
 | Wycheproof test vectors | `wycheproof/` submodule | Bundled; update with `git submodule update --remote wycheproof` |
+| NIST ACVP-Server | `acvp-server/` submodule | Reference only; `gen-val/json-files/` lists available algorithm families; update with `git submodule update --remote acvp-server` |
 
 ## Build & Test
 

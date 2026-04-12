@@ -180,14 +180,16 @@ Compare that list against the runners registered in `src/main.c` to spot gaps.
 
 ### 2. NIST ACVP — new algorithm families
 
-The NIST ACVP-Server repo tracks all algorithm families.  Browse its
-`gen-val/json-files/` directory for folder names that don't appear in our
-`testvectors_acvp/`:
+The NIST ACVP-Server repo is included as a git submodule at `acvp-server/`.
+Browse its `gen-val/json-files/` directory for algorithm families not yet in
+our `testvectors_acvp/`:
 
 ```sh
+# update to latest ACVP-Server release
+git submodule update --remote acvp-server
+
 # see what NIST has
-gh api repos/usnistgov/ACVP-Server/contents/gen-val/json-files \
-  --jq '.[].name' | sort
+ls acvp-server/gen-val/json-files/ | sort
 
 # compare with what we bundle
 ls testvectors_acvp/

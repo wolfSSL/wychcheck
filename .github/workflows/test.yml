@@ -12,8 +12,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      # Only init wycheproof — acvp-server is 900 MB and only needed locally
+      # for browsing available algorithm families, not for building or testing.
+      - run: git submodule update --init wycheproof
 
       # wolfSSL must be built as a source tree (not installed to a prefix):
       # CMakeLists.txt finds headers at $WOLFSSL_DIR/wolfssl/ and the library

@@ -1,3 +1,9 @@
 [submodule "wycheproof"]
 	path = wycheproof
 	url = https://github.com/google/wycheproof.git
+[submodule "acvp-server"]
+	path = acvp-server
+	url = https://github.com/usnistgov/ACVP-Server.git
+	# Reference-only: not needed for building or testing.
+	# Clone manually with: git submodule update --init acvp-server
+	update = none
