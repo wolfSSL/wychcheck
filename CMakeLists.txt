@@ -38,6 +38,7 @@ add_executable(wolfcrypt-check
     src/runners/ecdsa_p1363.c
     src/runners/eddsa.c
     src/runners/xdh.c
+    src/runners/dsa.c
     src/runners/rsa_sig.c
     src/runners/rsa_oaep.c
     src/runners/rsa_pss.c
