@@ -50,6 +50,9 @@ add_executable(wolfcrypt-check
     src/runners/pbkdf2.c
     src/runners/pbes2.c
     src/runners/slhdsa_acvp.c
+    src/runners/daead.c
+    src/runners/mac_with_iv.c
+    src/runners/rsa_sign.c
 )
 
 target_include_directories(wolfcrypt-check PRIVATE src)

@@ -178,6 +178,44 @@ static int test_xchacha_poly(const uint8_t *key, size_t key_len,
 }
 #endif
 
+#ifdef WOLFSSL_AES_SIV
+static int test_aes_siv(const uint8_t *key, size_t key_len,
+                        const uint8_t *iv,  size_t iv_len,
+                        const uint8_t *aad, size_t aad_len,
+                        const uint8_t *ct,  size_t ct_len,
+                        const uint8_t *tag, size_t tag_len,
+                        const uint8_t *msg, size_t msg_len)
+{
+    /* Wycheproof AEAD-AES-SIV-CMAC layout:
+     *   tag = SIV (16-byte synthetic IV / auth tag)
+     *   iv  = nonce (additional randomness; may be empty)
+     *   ct  = ciphertext body (same length as plaintext)
+     * wc_AesSivDecrypt modifies its siv argument in place, so copy first. */
+    byte siv[WC_AES_BLOCK_SIZE];
+    uint8_t *out = NULL;
+    int ret;
+
+    if (tag_len != WC_AES_BLOCK_SIZE) return -1;
+    memcpy(siv, tag, WC_AES_BLOCK_SIZE);
+
+    /* wc_AesSivDecrypt rejects NULL out even when dataSz==0; allocate at
+     * least 1 byte so the pointer is always valid. */
+    out = malloc(msg_len > 0 ? msg_len : 1);
+    if (!out) return -1;
+
+    ret = wc_AesSivDecrypt(key, (word32)key_len,
+                           aad, (word32)aad_len,
+                           iv,  (word32)iv_len,
+                           ct,  (word32)ct_len,
+                           siv, out);
+
+    if (ret == 0 && msg_len > 0 && memcmp(out, msg, msg_len) != 0)
+        ret = -1;
+    free(out);
+    return ret;
+}
+#endif /* WOLFSSL_AES_SIV */
+
 typedef int (*aead_fn)(const uint8_t *key, size_t key_len,
                        const uint8_t *iv, size_t iv_len,
                        const uint8_t *aad, size_t aad_len,
@@ -201,6 +239,9 @@ static aead_fn pick_aead(const char *algo)
 #endif
 #ifdef HAVE_XCHACHA
     if (strcmp(algo, "XCHACHA20-POLY1305") == 0) return test_xchacha_poly;
+#endif
+#ifdef WOLFSSL_AES_SIV
+    if (strcmp(algo, "AEAD-AES-SIV-CMAC") == 0) return test_aes_siv;
 #endif
     (void)algo;
     return NULL;
