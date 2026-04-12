@@ -88,7 +88,8 @@ static runner_fn find_runner(const char *schema)
     return NULL;
 }
 
-static void scan_dir(const char *dir, int *total_pass, int *total_fail,
+static void scan_dir(const char *dir, const char *filter,
+                     int *total_pass, int *total_fail,
                      int *total_skip, int *files_tested, int *files_skipped)
 {
     struct dirent **namelist;
@@ -107,6 +108,18 @@ static void scan_dir(const char *dir, int *total_pass, int *total_fail,
 
         if (nlen < 6 || strcmp(namelist[i]->d_name + nlen - 5, ".json") != 0)
             goto next;
+
+        /* --filter=<substr>  : skip files whose name does not contain substr.
+         * --filter=^<prefix> : skip files whose name does not start with prefix. */
+        if (filter) {
+            if (filter[0] == '^') {
+                if (strncmp(namelist[i]->d_name, filter + 1,
+                            strlen(filter) - 1) != 0)
+                    goto next;
+            } else if (strstr(namelist[i]->d_name, filter) == NULL) {
+                goto next;
+            }
+        }
 
         snprintf(path, sizeof(path), "%s/%s", dir, namelist[i]->d_name);
 
@@ -159,12 +172,18 @@ int main(int argc, char **argv)
     const char *wycheproof_dir = getenv("WYCHEPROOF_DIR");
     const char *acvp_dir       = getenv("ACVP_DIR");
     const char *rfc_dir        = getenv("RFC_VECTORS_DIR");
+    const char *filter         = NULL;
     char vectors_dir[PATH_MAX];
     struct stat st;
     int total_pass = 0, total_fail = 0, total_skip = 0;
     int files_tested = 0, files_skipped = 0;
+    int i;
 
-    (void)argc; (void)argv;
+    /* Parse --filter=<substring>: only run files whose name contains substring */
+    for (i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "--filter=", 9) == 0)
+            filter = argv[i] + 9;
+    }
 
     /* Line-buffer stdout so output survives if a crypto library call crashes */
     setvbuf(stdout, NULL, _IOLBF, 0);
@@ -192,19 +211,19 @@ int main(int argc, char **argv)
     printf("acvp:       %s\n", acvp_dir);
     printf("rfc:        %s\n\n", rfc_dir);
 
-    scan_dir(vectors_dir, &total_pass, &total_fail, &total_skip,
+    scan_dir(vectors_dir, filter, &total_pass, &total_fail, &total_skip,
              &files_tested, &files_skipped);
 
     if (stat(acvp_dir, &st) != 0 || !S_ISDIR(st.st_mode))
         printf("note: ACVP directory not found, skipping: %s\n", acvp_dir);
     else
-        scan_dir(acvp_dir, &total_pass, &total_fail, &total_skip,
+        scan_dir(acvp_dir, filter, &total_pass, &total_fail, &total_skip,
                  &files_tested, &files_skipped);
 
     if (stat(rfc_dir, &st) != 0 || !S_ISDIR(st.st_mode))
         printf("note: RFC vectors directory not found, skipping: %s\n", rfc_dir);
     else
-        scan_dir(rfc_dir, &total_pass, &total_fail, &total_skip,
+        scan_dir(rfc_dir, filter, &total_pass, &total_fail, &total_skip,
                  &files_tested, &files_skipped);
 
     printf("\n--- summary ---\n");

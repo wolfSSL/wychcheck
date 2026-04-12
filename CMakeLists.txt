@@ -72,3 +72,89 @@ set_target_properties(wolfcrypt-check PROPERTIES
     INSTALL_RPATH "${WOLFSSL_LIB_DIR}"
 )
 target_link_options(wolfcrypt-check PRIVATE "LINKER:--disable-new-dtags")
+
+# CTest integration — the RPATH baked above means no LD_LIBRARY_PATH is needed.
+# WYCHEPROOF_DEFAULT / ACVP_DEFAULT / RFC_DEFAULT are compiled-in absolute paths,
+# so no extra environment variables are required either.
+enable_testing()
+add_test(NAME wycheproof COMMAND wolfcrypt-check)
+
+# Per-algorithm CTest targets — one entry per algorithm family.
+# --filter=<substr>  : run only files whose name contains the substring.
+# --filter=^<prefix> : run only files whose name starts with the prefix.
+# Use: ctest -R <name>  or  ctest -L <label>
+
+# AEAD
+add_test(NAME wycheproof/aes-gcm            COMMAND wolfcrypt-check --filter=aes_gcm_test)
+add_test(NAME wycheproof/aes-ccm            COMMAND wolfcrypt-check --filter=aes_ccm_test)
+add_test(NAME wycheproof/aes-eax            COMMAND wolfcrypt-check --filter=aes_eax_test)
+add_test(NAME wycheproof/aes-siv-aead       COMMAND wolfcrypt-check --filter=aead_aes_siv_cmac)
+add_test(NAME wycheproof/aes-siv-daead      COMMAND wolfcrypt-check --filter=aes_siv_cmac_test)
+add_test(NAME wycheproof/aes-gmac           COMMAND wolfcrypt-check --filter=aes_gmac_test)
+add_test(NAME wycheproof/chacha20-poly1305  COMMAND wolfcrypt-check --filter=^chacha20_poly1305_test)
+add_test(NAME wycheproof/xchacha20-poly1305 COMMAND wolfcrypt-check --filter=xchacha20_poly1305_test)
+set_tests_properties(
+    wycheproof/aes-gcm wycheproof/aes-ccm wycheproof/aes-eax
+    wycheproof/aes-siv-aead wycheproof/aes-siv-daead wycheproof/aes-gmac
+    wycheproof/chacha20-poly1305 wycheproof/xchacha20-poly1305
+    PROPERTIES LABELS "aead")
+
+# MAC
+add_test(NAME wycheproof/hmac     COMMAND wolfcrypt-check --filter=hmac_sha)
+add_test(NAME wycheproof/siphash  COMMAND wolfcrypt-check --filter=siphash_)
+add_test(NAME wycheproof/aes-cmac COMMAND wolfcrypt-check --filter=aes_cmac_test)
+set_tests_properties(
+    wycheproof/hmac wycheproof/siphash wycheproof/aes-cmac
+    PROPERTIES LABELS "mac")
+
+# Symmetric ciphers
+add_test(NAME wycheproof/aes-cbc COMMAND wolfcrypt-check --filter=aes_cbc_pkcs5_test)
+add_test(NAME wycheproof/aes-xts COMMAND wolfcrypt-check --filter=aes_xts_test)
+add_test(NAME wycheproof/aes-kw  COMMAND wolfcrypt-check --filter=aes_wrap_test)
+add_test(NAME wycheproof/aes-kwp COMMAND wolfcrypt-check --filter=aes_kwp_test)
+set_tests_properties(
+    wycheproof/aes-cbc wycheproof/aes-xts
+    wycheproof/aes-kw wycheproof/aes-kwp
+    PROPERTIES LABELS "symmetric")
+
+# KDF
+add_test(NAME wycheproof/hkdf   COMMAND wolfcrypt-check --filter=hkdf_sha)
+add_test(NAME wycheproof/pbkdf2 COMMAND wolfcrypt-check --filter=pbkdf2_hmac)
+add_test(NAME wycheproof/pbes2  COMMAND wolfcrypt-check --filter=pbes2_hmac)
+set_tests_properties(
+    wycheproof/hkdf wycheproof/pbkdf2 wycheproof/pbes2
+    PROPERTIES LABELS "kdf")
+
+# ECDH and XDH
+add_test(NAME wycheproof/ecdh   COMMAND wolfcrypt-check --filter=^ecdh_)
+add_test(NAME wycheproof/x25519 COMMAND wolfcrypt-check --filter=x25519)
+add_test(NAME wycheproof/x448   COMMAND wolfcrypt-check --filter=x448)
+set_tests_properties(
+    wycheproof/ecdh wycheproof/x25519 wycheproof/x448
+    PROPERTIES LABELS "ecdh")
+
+# Digital signatures
+add_test(NAME wycheproof/ecdsa         COMMAND wolfcrypt-check --filter=^ecdsa_)
+add_test(NAME wycheproof/eddsa         COMMAND wolfcrypt-check --filter=^ed)
+add_test(NAME wycheproof/dsa           COMMAND wolfcrypt-check --filter=^dsa_)
+add_test(NAME wycheproof/rsa-pkcs1     COMMAND wolfcrypt-check --filter=rsa_pkcs1)
+add_test(NAME wycheproof/rsa-signature COMMAND wolfcrypt-check --filter=rsa_signature)
+add_test(NAME wycheproof/rsa-oaep      COMMAND wolfcrypt-check --filter=oaep)
+add_test(NAME wycheproof/rsa-pss       COMMAND wolfcrypt-check --filter=rsa_pss)
+set_tests_properties(
+    wycheproof/ecdsa wycheproof/eddsa wycheproof/dsa
+    wycheproof/rsa-pkcs1 wycheproof/rsa-signature
+    wycheproof/rsa-oaep wycheproof/rsa-pss
+    PROPERTIES LABELS "signature")
+
+# Post-quantum
+add_test(NAME wycheproof/mldsa  COMMAND wolfcrypt-check --filter=mldsa)
+add_test(NAME wycheproof/mlkem  COMMAND wolfcrypt-check --filter=mlkem)
+add_test(NAME wycheproof/slhdsa COMMAND wolfcrypt-check --filter=slhdsa)
+set_tests_properties(
+    wycheproof/mldsa wycheproof/mlkem wycheproof/slhdsa
+    PROPERTIES LABELS "pqc")
+
+# RFC reference vectors
+add_test(NAME wycheproof/rfc COMMAND wolfcrypt-check --filter=^rfc)
+set_tests_properties(wycheproof/rfc PROPERTIES LABELS "rfc")

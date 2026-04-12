@@ -26,8 +26,20 @@ export WOLFSSL_DIR=~/wolfssl
 cmake -B build
 cmake --build build
 
-# Run all Wycheproof vectors (uses bundled submodule)
-./build/wolfcrypt-check
+# Run the full test suite via CTest (canonical)
+ctest --test-dir build --output-on-failure
+
+# Run a single algorithm family
+ctest --test-dir build -R wycheproof/ecdsa --output-on-failure
+
+# Run a label group (aead | mac | symmetric | kdf | ecdh | signature | pqc | rfc)
+ctest --test-dir build -L aead --output-on-failure
+
+# Run the binary directly (useful for debugging a single failure)
+./build/wolfcrypt-check --filter=aes_gcm_test
+
+# --filter=<substr>  : run only files whose name contains the substring
+# --filter=^<prefix> : run only files whose name starts with the prefix
 
 # Run against a different Wycheproof checkout
 WYCHEPROOF_DIR=/path/to/wycheproof ./build/wolfcrypt-check
@@ -39,7 +51,8 @@ WYCHEPROOF_DIR=/path/to/wycheproof ./build/wolfcrypt-check
 Exit codes: 0 = all tests passed, 1 = any test failed, 2 = infrastructure error.
 
 CMake sets RPATH (not RUNPATH) so the binary uses the wolfssl from
-`WOLFSSL_DIR` even if another version is installed system-wide.
+`WOLFSSL_DIR` even if another version is installed system-wide. CTest
+inherits the binary's RPATH, so no `LD_LIBRARY_PATH` is required.
 
 ## Architecture
 
@@ -48,19 +61,32 @@ src/main.c          scans testvectors_v1/ (falls back to testvectors/),
                     matches each JSON file's schema to a runner, dispatches
 
 src/runners/
-  aead.c            AES-GCM, AES-CCM, AES-EAX, ChaCha20-Poly1305, XChaCha20-Poly1305
+  aead.c            AES-GCM, AES-CCM, AES-EAX, AES-SIV-CMAC (AEAD),
+                    ChaCha20-Poly1305, XChaCha20-Poly1305
+  daead.c           AES-SIV-CMAC (deterministic AEAD / no nonce)
   mac.c             HMAC, AES-CMAC, SipHash
+  mac_with_iv.c     AES-GMAC
   hkdf.c            HKDF
   ind_cpa.c         AES-CBC, AES-XTS
-  keywrap.c         AES-KW
+  keywrap.c         AES-KW, AES-KWP
   ecdh.c            ECDH
   ecdsa.c           ECDSA (DER)
   ecdsa_p1363.c     ECDSA (P1363 / IEEE)
   eddsa.c           Ed25519, Ed448
   xdh.c             X25519, X448
+  dsa.c             DSA (DER and P1363)
   rsa_sig.c         RSA PKCS#1 v1.5 signature verification
+  rsa_sign.c        RSA PKCS#1 v1.5 signature generation
+  rsa_decrypt.c     RSA PKCS#1 v1.5 decryption
   rsa_oaep.c        RSA-OAEP decryption
   rsa_pss.c         RSA-PSS signature verification
+  mldsa.c           ML-DSA (verify, sign with/without seed)
+  mldsa_acvp.c      ML-DSA ACVP (keygen, sigver, siggen)
+  mlkem.c           ML-KEM (encaps/decaps/keygen)
+  mlkem_acvp.c      ML-KEM ACVP (keygen, encapdecap)
+  slhdsa_acvp.c     SLH-DSA ACVP (keygen, sigver, siggen) — SHAKE variants only
+  pbkdf2.c          PBKDF2
+  pbes2.c           PBES2
 
 src/runner.h        Shared types, helper inlines: hex decode, hash/MGF name
                     mapping, result predicates (is_valid / is_acceptable)

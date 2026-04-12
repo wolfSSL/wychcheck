@@ -1,0 +1,66 @@
+name: Wycheproof vectors
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # wolfSSL must be built as a source tree (not installed to a prefix):
+      # CMakeLists.txt finds headers at $WOLFSSL_DIR/wolfssl/ and the library
+      # at $WOLFSSL_DIR/src/.libs/ — the layout produced by in-tree autotools.
+      - name: Checkout wolfSSL
+        uses: actions/checkout@v4
+        with:
+          repository: wolfSSL/wolfssl
+          ref: master
+          path: wolfssl-src
+
+      - name: Build wolfSSL
+        working-directory: wolfssl-src
+        run: |
+          autoreconf -i
+          ./configure \
+            --enable-cryptocb \
+            --enable-ecc \
+            --enable-aesgcm \
+            --enable-aesccm \
+            --enable-aeseax \
+            --enable-aessiv \
+            --enable-aesxts \
+            --enable-keywrap \
+            --enable-siphash \
+            --enable-hkdf \
+            --enable-mldsa \
+            --enable-mlkem \
+            --enable-slhdsa \
+            --disable-examples
+          make -j$(nproc)
+
+      - name: Build wolfcrypt-check
+        run: |
+          cmake -B build -DWOLFSSL_DIR=${{ github.workspace }}/wolfssl-src
+          cmake --build build -j$(nproc)
+
+      - name: Run ctest
+        run: |
+          ctest --test-dir build \
+            --output-on-failure \
+            --parallel $(nproc) \
+            --output-junit test-results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
