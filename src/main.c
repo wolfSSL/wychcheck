@@ -54,6 +54,7 @@ static const runner_def_t runners[] = {
     { "rsaes_pkcs1_decrypt_schema_v1.json",      run_rsa_decrypt },
     { "rsaes_oaep_decrypt_schema_v1.json",       run_rsa_oaep },
     { "rsassa_pss_verify_schema_v1.json",        run_rsa_pss },
+    { "rsassa_pss_with_parameters_verify_schema.json", run_rsa_pss },
     { "mldsa_verify_schema.json",               run_mldsa_verify },
     { "mldsa_sign_seed_schema.json",            run_mldsa_sign_seed },
     { "mldsa_sign_noseed_schema.json",          run_mldsa_sign_noseed },
