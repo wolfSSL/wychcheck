@@ -131,6 +131,103 @@ tools/
   merge_acvp.py       -- merges ACVP prompt + expectedResults into one file
 ```
 
+## Finding new coverage opportunities
+
+There are three distinct places to look when checking whether upstream has
+test vectors we should be running but aren't.
+
+### 1. Wycheproof — new algorithms or schemas
+
+The Wycheproof submodule is the primary source.  Update it and run:
+
+```sh
+git submodule update --remote wycheproof
+./build/wolfcrypt-check 2>&1 | grep "no runner"
+```
+
+Each `SKIP … (no runner)` line names a JSON file whose `schema` field has no
+registered runner.  That's a candidate for a new runner if wolfSSL implements
+the algorithm.
+
+Also grep for `(not compiled)`:
+
+```sh
+./build/wolfcrypt-check 2>&1 | grep "not compiled"
+```
+
+`(not compiled)` means the runner exists but the wolfSSL feature flag is
+off — try rebuilding wolfSSL with the relevant `--enable-*` flag rather than
+writing new code.
+
+To see all schemas that appear in the vector files (including ones we skip):
+
+```sh
+python3 -c "
+import json, glob, collections
+schemas = collections.Counter()
+for f in glob.glob('wycheproof/testvectors_v1/*.json'):
+    try:
+        d = json.load(open(f))
+        schemas[d.get('schema','?')] += 1
+    except Exception:
+        pass
+for s, n in sorted(schemas.items()):
+    print(f'{n:4d}  {s}')
+"
+```
+
+Compare that list against the runners registered in `src/main.c` to spot gaps.
+
+### 2. NIST ACVP — new algorithm families
+
+The NIST ACVP-Server repo tracks all algorithm families.  Browse its
+`gen-val/json-files/` directory for folder names that don't appear in our
+`testvectors_acvp/`:
+
+```sh
+# see what NIST has
+gh api repos/usnistgov/ACVP-Server/contents/gen-val/json-files \
+  --jq '.[].name' | sort
+
+# compare with what we bundle
+ls testvectors_acvp/
+```
+
+Any NIST directory whose algorithm wolfSSL supports is a candidate for
+vendoring vectors.
+
+### 3. BoringSSL bundled ACVP vectors
+
+BoringSSL ships real NIST ACVP session responses that are usable offline.
+They live at:
+`util/fipstools/acvp/acvptool/test/` in the BoringSSL repo (one `.bz2` per
+algorithm family).
+
+This is how the SLH-DSA and ML-KEM ACVP vectors in this repo were obtained.
+To check for new ones:
+
+```sh
+# list what BoringSSL bundles
+gh api repos/google/boringssl/contents/util/fipstools/acvp/acvptool/test \
+  --jq '.[].name' | sort
+
+# compare with what we bundle
+ls testvectors_acvp/
+```
+
+If BoringSSL has a `.bz2` for an algorithm we don't yet cover, extract and
+merge it:
+
+```sh
+bzip2 -dk path/to/Algorithm.bz2      # produces Algorithm (JSON)
+# edit tools/merge_acvp.py to add the new directory mapping
+python3 tools/merge_acvp.py
+```
+
+See `tools/README.md` for provenance details and the merge workflow.
+
+---
+
 ## Test vector sources
 
 **Project Wycheproof**
