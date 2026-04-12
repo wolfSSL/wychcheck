@@ -124,6 +124,8 @@ test_result_t run_mlkem(cJSON *root, const char *fname);
 test_result_t run_mlkem_encaps(cJSON *root, const char *fname);
 test_result_t run_mlkem_keygen(cJSON *root, const char *fname);
 test_result_t run_mlkem_decaps(cJSON *root, const char *fname);
+test_result_t run_mlkem_acvp_keygen(cJSON *root, const char *fname);
+test_result_t run_mlkem_acvp_encapdecap(cJSON *root, const char *fname);
 test_result_t run_pbkdf2(cJSON *root, const char *fname);
 test_result_t run_pbes2(cJSON *root, const char *fname);
 

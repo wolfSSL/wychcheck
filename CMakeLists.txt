@@ -44,6 +44,7 @@ add_executable(wolfcrypt-check
     src/runners/mldsa.c
     src/runners/mldsa_acvp.c
     src/runners/mlkem.c
+    src/runners/mlkem_acvp.c
     src/runners/pbkdf2.c
     src/runners/pbes2.c
 )

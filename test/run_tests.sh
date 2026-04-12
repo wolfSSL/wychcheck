@@ -24,10 +24,16 @@ run_test() {
     expect_grep="$4"    # optional: grep pattern that must appear in output
 
     # wolfcrypt-check looks for testvectors_v1/ under WYCHEPROOF_DIR, so wrap
-    # our fixture dir behind that expected path via a symlink
+    # our fixture dir behind that expected path via a symlink.
+    # Use an empty ACVP dir so meta-tests are isolated from the real ACVP
+    # vectors: the ACVP directory may contain vectors that expose wolfssl
+    # defects, and those failures are correct behaviour for a full run but
+    # must not interfere with infrastructure-level pass/fail assertions here.
     tmpdir=$(mktemp -d)
     ln -s "$vectors_dir" "$tmpdir/testvectors_v1"
-    output=$(WYCHEPROOF_DIR="$tmpdir" "$WOLFCRYPT_CHECK" 2>&1) && actual_exit=0 || actual_exit=$?
+    mkdir "$tmpdir/acvp_empty"
+    output=$(WYCHEPROOF_DIR="$tmpdir" ACVP_DIR="$tmpdir/acvp_empty" \
+             "$WOLFCRYPT_CHECK" 2>&1) && actual_exit=0 || actual_exit=$?
     rm -rf "$tmpdir"
 
     if [ "$actual_exit" -ne "$expect_exit" ]; then
