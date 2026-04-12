@@ -147,6 +147,7 @@ int main(int argc, char **argv)
 {
     const char *wycheproof_dir = getenv("WYCHEPROOF_DIR");
     const char *acvp_dir       = getenv("ACVP_DIR");
+    const char *rfc_dir        = getenv("RFC_VECTORS_DIR");
     char vectors_dir[PATH_MAX];
     struct stat st;
     int total_pass = 0, total_fail = 0, total_skip = 0;
@@ -161,6 +162,8 @@ int main(int argc, char **argv)
         wycheproof_dir = WYCHEPROOF_DEFAULT;
     if (!acvp_dir)
         acvp_dir = ACVP_DEFAULT;
+    if (!rfc_dir)
+        rfc_dir = RFC_DEFAULT;
 
     /* try testvectors_v1/ first, then testvectors/ */
     snprintf(vectors_dir, sizeof(vectors_dir), "%s/testvectors_v1", wycheproof_dir);
@@ -175,7 +178,8 @@ int main(int argc, char **argv)
 
     printf("wolfcrypt-check: testing wolfSSL against Wycheproof and ACVP vectors\n");
     printf("wycheproof: %s\n", vectors_dir);
-    printf("acvp:       %s\n\n", acvp_dir);
+    printf("acvp:       %s\n", acvp_dir);
+    printf("rfc:        %s\n\n", rfc_dir);
 
     scan_dir(vectors_dir, &total_pass, &total_fail, &total_skip,
              &files_tested, &files_skipped);
@@ -184,6 +188,12 @@ int main(int argc, char **argv)
         printf("note: ACVP directory not found, skipping: %s\n", acvp_dir);
     else
         scan_dir(acvp_dir, &total_pass, &total_fail, &total_skip,
+                 &files_tested, &files_skipped);
+
+    if (stat(rfc_dir, &st) != 0 || !S_ISDIR(st.st_mode))
+        printf("note: RFC vectors directory not found, skipping: %s\n", rfc_dir);
+    else
+        scan_dir(rfc_dir, &total_pass, &total_fail, &total_skip,
                  &files_tested, &files_skipped);
 
     printf("\n--- summary ---\n");

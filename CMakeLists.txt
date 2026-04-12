@@ -53,6 +53,7 @@ target_include_directories(wolfcrypt-check PRIVATE src)
 target_compile_definitions(wolfcrypt-check PRIVATE
     WYCHEPROOF_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/wycheproof"
     ACVP_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/testvectors_acvp"
+    RFC_DEFAULT="${CMAKE_CURRENT_SOURCE_DIR}/testvectors_rfc"
 )
 target_link_libraries(wolfcrypt-check ${WOLFSSL_LIB} m pthread)
 

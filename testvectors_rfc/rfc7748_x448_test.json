@@ -1,0 +1,30 @@
+{
+  "algorithm": "XDH",
+  "schema": "xdh_comp_schema_v1.json",
+  "numberOfTests": 1,
+  "header": [
+    "RFC 7748 Section 6.2 X448 test vector"
+  ],
+  "notes": {},
+  "testGroups": [
+    {
+      "type": "XdhComp",
+      "source": {
+        "name": "rfc7748",
+        "version": "2016"
+      },
+      "curve": "curve448",
+      "tests": [
+        {
+          "tcId": 1,
+          "comment": "RFC 7748 Section 6.2",
+          "flags": [],
+          "public": "3eb7a829b0cd20f5bcfc0b599b6feccf6da4627107bdb0d4f345b43027d8b972fc3e34fb4232a13ca706dcb57aec3dae07bdc1c67bf33609",
+          "private": "9a8f4925d1519f5775cf46b04b5800d4ee9ee8bae8bc5565d498c28dd9c9baf574a9419744897391006382a6f127ab1d9ac2d8c0a598726b",
+          "shared": "07fff4181ac6cc95ec1c16a94a0f74d12da232ce40a77552281d282bb60c0b56fd2464c335543936521c24403085d59a449a5037514a879d",
+          "result": "valid"
+        }
+      ]
+    }
+  ]
+}
