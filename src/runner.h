@@ -128,6 +128,7 @@ test_result_t run_mlkem_acvp_keygen(cJSON *root, const char *fname);
 test_result_t run_mlkem_acvp_encapdecap(cJSON *root, const char *fname);
 test_result_t run_dsa(cJSON *root, const char *fname);
 test_result_t run_dsa_p1363(cJSON *root, const char *fname);
+test_result_t run_rsa_decrypt(cJSON *root, const char *fname);
 test_result_t run_pbkdf2(cJSON *root, const char *fname);
 test_result_t run_pbes2(cJSON *root, const char *fname);
 
