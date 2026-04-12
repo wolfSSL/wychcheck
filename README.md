@@ -200,18 +200,16 @@ vendoring vectors.
 
 ### 3. BoringSSL bundled ACVP vectors
 
-BoringSSL ships real NIST ACVP session responses that are usable offline.
-They live at:
-`util/fipstools/acvp/acvptool/test/` in the BoringSSL repo (one `.bz2` per
-algorithm family).
-
-This is how the SLH-DSA and ML-KEM ACVP vectors in this repo were obtained.
-To check for new ones:
+BoringSSL ships real NIST ACVP session responses usable offline.  The
+BoringSSL repo is included as a reference submodule at `boringssl/`
+(pinning the exact commit from which vectors were last extracted).
 
 ```sh
+# update the submodule to latest BoringSSL
+git submodule update --remote boringssl
+
 # list what BoringSSL bundles
-gh api repos/google/boringssl/contents/util/fipstools/acvp/acvptool/test \
-  --jq '.[].name' | sort
+ls boringssl/util/fipstools/acvp/acvptool/test/vectors/ | sort
 
 # compare with what we bundle
 ls testvectors_acvp/
@@ -221,7 +219,7 @@ If BoringSSL has a `.bz2` for an algorithm we don't yet cover, extract and
 merge it:
 
 ```sh
-bzip2 -dk path/to/Algorithm.bz2      # produces Algorithm (JSON)
+bzip2 -dk boringssl/util/fipstools/acvp/acvptool/test/vectors/Algorithm.bz2
 # edit tools/merge_acvp.py to add the new directory mapping
 python3 tools/merge_acvp.py
 ```

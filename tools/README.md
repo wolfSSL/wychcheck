@@ -64,9 +64,9 @@ are generated from them by `merge_acvp.py`.
 
 The ML-DSA and ML-KEM vectors were requested directly from the NIST ACVP Demo
 Server. The SLH-DSA vectors were sourced from BoringSSL's bundled NIST ACVP
-test suite (`util/fipstools/acvp/acvptool/test/`) at commit `75a1350` of the
-BoringSSL repository; they originate from NIST ACVP session 565841 (downloaded
-2024-12-03T23:29:11Z, vsIds 2716977–2716979). The vectors cover the
+test suite (`boringssl/util/fipstools/acvp/acvptool/test/`) — see the
+`boringssl/` reference submodule; they originate from NIST ACVP session 565841
+(downloaded 2024-12-03T23:29:11Z, vsIds 2716977–2716979). The vectors cover the
 `SLH-DSA-SHA2-128s` parameter set only. wolfSSL implements the SHAKE variants
 (`SLH-DSA-SHAKE-*`) but not the SHA2 variants, so these tests are skipped at
 runtime until matching SHAKE vectors are added.

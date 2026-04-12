@@ -7,3 +7,9 @@
 	# Reference-only: not needed for building or testing.
 	# Clone manually with: git submodule update --init acvp-server
 	update = none
+[submodule "boringssl"]
+	path = boringssl
+	url = https://github.com/google/boringssl.git
+	# Reference-only: not needed for building or testing.
+	# Clone manually with: git submodule update --init boringssl
+	update = none
