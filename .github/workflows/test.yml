@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 22 * * 6'  # Saturday 22:00 UTC
 
 jobs:
   test:
